@@ -1,0 +1,11 @@
+[package]
+name = "hss-exercise"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+ark-bls12-381 = "0.5.0"
+ark-ec = "0.5.0"
+ark-ff = "0.5.0"
+ark-std = "0.5.0"
+sha2 = "0.10.8"
