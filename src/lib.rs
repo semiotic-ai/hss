@@ -27,19 +27,9 @@ fn hash_to_curve(msg: &[u8], domain: &[u8]) -> Result<G1Affine, HashToCurveError
 }
 
 pub fn setup() -> (PK, Fr) {
-    let p = G1Affine::generator();
-    let q = G2Affine::generator();
-    let mut rng = ark_std::test_rng();
-    let sk = Fr::rand(&mut rng);
-    let r = q.mul(sk);
-
-    (PK { p, q, r: r.into() }, sk)
 }
 
 pub fn sign(sk: Fr, pk: &PK, id: &[u8], index: usize, m: Fr) -> Result<G1Affine, HashToCurveError> {
-    let hash_point = hash_to_curve(&index.to_le_bytes(), id)?;
-    let signature: G1Projective = (hash_point + pk.p.mul(m)).mul(sk);
-    Ok(signature.into())
 }
 
 pub fn verify(
@@ -49,10 +39,6 @@ pub fn verify(
     m: Fr,
     signature: G1Affine,
 ) -> Result<bool, HashToCurveError> {
-    let hash_point = hash_to_curve(&index.to_le_bytes(), id)?;
-    let left = Bls12_381::pairing(signature, pk.q);
-    let right = Bls12_381::pairing(hash_point + pk.p.mul(m), pk.r);
-    Ok(left == right)
 }
 
 pub fn verify_aggregate(
@@ -62,21 +48,9 @@ pub fn verify_aggregate(
     m: Fr,
     signature: G1Affine,
 ) -> Result<bool, HashToCurveError> {
-    let mut hash_point = G1Projective::zero();
-    for (i, w) in weights.iter().enumerate() {
-        hash_point += hash_to_curve(&i.to_le_bytes(), id)?.mul(w);
-    }
-    let left = Bls12_381::pairing(signature, pk.q);
-    let right = Bls12_381::pairing(hash_point + pk.p.mul(m), pk.r);
-    Ok(left == right)
 }
 
 pub fn combine(weights: &Vec<Fr>, signatures: Vec<G1Affine>) -> G1Affine {
-    let aggregate_signature = signatures
-        .iter()
-        .zip(weights)
-        .fold(G1Projective::zero(), |acc, (x, w)| acc + x.mul(w));
-    aggregate_signature.into()
 }
 
 #[cfg(test)]
